@@ -9,7 +9,7 @@ import argparse
 import sys
 from typing import List, Optional
 
-from . import abbrev, analysis, encodings, hashes
+from . import abbrev, addresses, analysis, encodings, hashes
 from .classical import (affine, atbash, caesar, morse, substitution,
                         transposition, vigenere, xor)
 from .core import Candidate
@@ -275,6 +275,65 @@ def cmd_abbrev(args):
           "should be claimed.")
 
 
+def cmd_addresses(args):
+    text = _read_input(args)
+    rep = addresses.analyze(text)
+
+    print("=== repeated line templates (list/table structure) ===")
+    print("  (recurring tokens kept; W = other word, N = number)\n")
+    if rep["repeated_templates"]:
+        for shape, count in rep["repeated_templates"]:
+            print(f"  x{count}: {' '.join(shape)}")
+    else:
+        print("  none found")
+
+    print("\n=== lines containing numbers (candidate list entries) ===")
+    for e in rep["numbered_lines"]:
+        print(f"  {' '.join(e['line'])}")
+
+    print(f"\nnumbers present: {', '.join(rep['numbers'])}")
+
+    print("\n=== street-vocabulary cross-check ===")
+    print("  (does any token's consonant skeleton match a US street "
+          "type/direction?)\n")
+    if rep["street_vocab_hits"]:
+        for tok, matches in rep["street_vocab_hits"].items():
+            print(f"  {tok:<10} -> {', '.join(matches)}")
+    else:
+        print("  no tokens match standard street types or directionals")
+
+    # Do any street-vocab matches actually fall inside the repeated list lines?
+    repeat_shapes = {tuple(sh) for sh, _ in rep["repeated_templates"]}
+    list_tokens = set()
+    for e in rep["numbered_lines"]:
+        if tuple(e["shape"]) in repeat_shapes:
+            list_tokens.update(e["line"])
+    street_in_list = sorted(set(rep["street_vocab_hits"]) & list_tokens)
+
+    print("\n=== verdict ===")
+    if rep["repeated_templates"]:
+        print("Repeated templates with numbers ARE present — real list/table "
+              "structure, consistent with an enumerated set of entries.")
+    else:
+        print("No repeated numbered template — no list structure detected.")
+    if street_in_list:
+        print(f"Street-type words appear INSIDE the list entries "
+              f"({', '.join(street_in_list)}) — genuine support for an address "
+              f"reading; verify against real street names.")
+    elif rep["street_vocab_hits"]:
+        print("The few street-vocabulary matches are short tokens OUTSIDE the "
+              "list entries (likely coincidence); the list entries themselves "
+              "match no street type. So the street-ADDRESS reading is NOT "
+              "supported by this transcription — matching the FBI's own "
+              "negative result. The list structure is real; its subject is "
+              "unknown.")
+    else:
+        print("No token matches standard US street types or directionals, so "
+              "the street-ADDRESS reading is NOT supported by this "
+              "transcription — matching the FBI's own negative result.")
+    print("Structure is evidence; no line is claimed to be a decoded address.")
+
+
 def cmd_build_model(args):
     """Build an English quadgram model from a corpus for maximum accuracy."""
     from collections import Counter
@@ -392,6 +451,12 @@ def build_parser() -> argparse.ArgumentParser:
     sp.add_argument("--context", metavar="TOKEN",
                     help="structural probe of one recurring token (e.g. NCBE)")
     sp.set_defaults(func=cmd_abbrev)
+
+    sp = sub.add_parser("addresses",
+                        help="detect list/table structure and cross-check "
+                             "tokens against US street vocabulary")
+    add_common(sp)
+    sp.set_defaults(func=cmd_addresses)
 
     sp = sub.add_parser("build-model",
                         help="build quadgram model from a text corpus")

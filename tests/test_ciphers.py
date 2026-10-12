@@ -5,7 +5,7 @@ import sys
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from codebreaker import abbrev, encodings  # noqa: E402
+from codebreaker import abbrev, addresses, encodings  # noqa: E402
 from codebreaker.classical import (affine, atbash, caesar, morse,  # noqa: E402
                                    substitution, transposition, vigenere, xor)
 from codebreaker.detect import assess, auto_crack  # noqa: E402
@@ -164,6 +164,22 @@ def test_abbrev_token_context():
     assert ctx["line_final"] == 3            # ends every line here
     assert dict(ctx["preceded_by"]).get("WLD") == 2
     assert ctx["vowel_insertion"] is None    # genuinely has no clean expansion
+
+
+def test_addresses_detects_repeated_template():
+    text = ("AAA PRSE ONE 71 NCBE\n"
+            "BBB PRSE TWO 74 NCBE\n"
+            "CCC PRSE SIX 75 NCBE\n"
+            "random line here")
+    rep = addresses.analyze(text)
+    # The three parallel lines share one template, detected as structure.
+    assert any(count == 3 for _, count in rep["repeated_templates"])
+    assert len(rep["numbered_lines"]) == 3
+
+
+def test_addresses_street_cross_check():
+    assert "STREET" in addresses.street_match("STRT")   # consonant skeleton
+    assert addresses.street_match("NCBE") == []          # no false positive
 
 
 def test_assess_reports_solved():
