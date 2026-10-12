@@ -5,7 +5,7 @@ import sys
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from codebreaker import abbrev, addresses, encodings  # noqa: E402
+from codebreaker import abbrev, addresses, encodings, units  # noqa: E402
 from codebreaker.classical import (affine, atbash, caesar, morse,  # noqa: E402
                                    substitution, transposition, vigenere, xor)
 from codebreaker.detect import assess, auto_crack  # noqa: E402
@@ -180,6 +180,19 @@ def test_addresses_detects_repeated_template():
 def test_addresses_street_cross_check():
     assert "STREET" in addresses.street_match("STRT")   # consonant skeleton
     assert addresses.street_match("NCBE") == []          # no false positive
+
+
+def test_units_finds_shared_substring_by_spread():
+    # "ING" is shared across three distinct tokens -> high spread.
+    rows = units.repeated_substrings("RUNNING JUMPING SINGING", min_count=3)
+    by_sub = {s: (c, sp) for s, c, sp in rows}
+    assert "ING" in by_sub and by_sub["ING"][1] == 3
+
+
+def test_units_affix_habits():
+    aff = units.affixes("CATSE DOGSE BIRDSE CARSE")
+    assert aff["end_SE"] == 4 and aff["end_SE_fraction"] == 1.0
+    assert units.stems("CATSE DOGSE", "SE") == ["CAT", "DOG"]
 
 
 def test_assess_reports_solved():

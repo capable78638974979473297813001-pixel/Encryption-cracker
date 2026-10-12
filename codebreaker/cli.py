@@ -9,7 +9,7 @@ import argparse
 import sys
 from typing import List, Optional
 
-from . import abbrev, addresses, analysis, encodings, hashes
+from . import abbrev, addresses, analysis, encodings, hashes, units
 from .classical import (affine, atbash, caesar, morse, substitution,
                         transposition, vigenere, xor)
 from .core import Candidate
@@ -334,6 +334,38 @@ def cmd_addresses(args):
     print("Structure is evidence; no line is claimed to be a decoded address.")
 
 
+def cmd_units(args):
+    text = _read_input(args)
+    rep = units.analyze(text)
+    aff = rep["affixes"]
+
+    print("=== writer's affix habits ===")
+    print(f"tokens: {aff['tokens']}")
+    print(f"end in 'E' : {aff['end_E']} ({aff['end_E_fraction']:.0%})")
+    print(f"end in 'SE': {aff['end_SE']} ({aff['end_SE_fraction']:.0%})")
+    print(f"top suffixes: {aff['top_suffixes']}")
+    print(f"top prefixes: {aff['top_prefixes']}")
+
+    print("\n=== recurring building blocks (substring, count, token-spread) ===")
+    print("  (spread = how many DISTINCT tokens it appears in)\n")
+    for s, c, sp in rep["substrings"][:20]:
+        print(f"  {s:<6} count={c:<3} spread={sp}")
+
+    print("\n=== core units (recurring, not just the dominant affixes) ===")
+    for s, c, sp in rep["cores"]:
+        print(f"  {s:<6} count={c:<3} spread={sp}")
+
+    print("\n=== observed writing rule (hypothesis) ===")
+    if aff["end_E_fraction"] > 0.5:
+        print(f"- a terminal 'E' is appended to {aff['end_E_fraction']:.0%} of "
+              f"tokens; '-SE' ({aff['end_SE_fraction']:.0%}) marks what looks "
+              f"like an English plural/possessive '-s'")
+    print("- stems (with -SE stripped) read as vowel-dropped words, e.g. "
+          "CLTR->cultures, FLR->floors, NMR->numer-")
+    print("- this characterises HOW the note was written; it is not a decoding "
+          "and the recurring refrain is still unexplained.")
+
+
 def cmd_build_model(args):
     """Build an English quadgram model from a corpus for maximum accuracy."""
     from collections import Counter
@@ -457,6 +489,11 @@ def build_parser() -> argparse.ArgumentParser:
                              "tokens against US street vocabulary")
     add_common(sp)
     sp.set_defaults(func=cmd_addresses)
+
+    sp = sub.add_parser("units",
+                        help="mine recurring building blocks and affix habits")
+    add_common(sp)
+    sp.set_defaults(func=cmd_units)
 
     sp = sub.add_parser("build-model",
                         help="build quadgram model from a text corpus")
