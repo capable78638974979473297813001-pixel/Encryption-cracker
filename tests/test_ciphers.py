@@ -6,7 +6,7 @@ import sys
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from codebreaker import (abbrev, addresses, encodings,  # noqa: E402
-                        phonetic, units)
+                        phonetic, rebus, units)
 from codebreaker.classical import (affine, atbash, caesar, morse,  # noqa: E402
                                    substitution, transposition, vigenere, xor)
 from codebreaker.detect import assess, auto_crack  # noqa: E402
@@ -211,6 +211,20 @@ def test_cross_validate_reports_two_halves():
     cv = units.cross_validate(text)
     assert len(cv["halves"]) == 2
     assert cv["halves"][0]["NCBE"] == 1 and cv["halves"][1]["NCBE"] == 1
+
+
+def test_rebus_reads_real_rebuses():
+    assert rebus.best_reading("CU")[0] == "see you"
+    assert rebus.best_reading("RU")[0] == "are you"
+    assert rebus.best_reading("B4")[0] in ("be for", "be four")
+
+
+def test_rebus_does_not_force_ncbe():
+    # NCBE must not produce a confident single-word/coherent reading; the best
+    # it yields is a run of tiny coincidental words.  We assert it is NOT a
+    # clean one- or two-word reading.
+    reading, _ = rebus.best_reading("NCBE")
+    assert len(reading.split()) >= 3   # only decomposes into tiny pieces
 
 
 def test_assess_reports_solved():

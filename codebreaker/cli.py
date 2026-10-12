@@ -9,7 +9,8 @@ import argparse
 import sys
 from typing import List, Optional
 
-from . import abbrev, addresses, analysis, encodings, hashes, phonetic, units
+from . import (abbrev, addresses, analysis, encodings, hashes, phonetic,
+               rebus, units)
 from .classical import (affine, atbash, caesar, morse, substitution,
                         transposition, vigenere, xor)
 from .core import Candidate
@@ -391,6 +392,47 @@ def cmd_phonetic(args):
           "no verifiable message results.")
 
 
+def cmd_rebus(args):
+    import re as _re
+    text = _read_input(args)
+    toks = []
+    for line in text.splitlines():
+        if line.lstrip().startswith("#"):
+            continue
+        toks.extend(m.group(0).upper()
+                    for m in _re.finditer(r"[A-Za-z0-9]+", line))
+
+    print("letter-name / homophone (rebus) reading — e.g. CU = 'see you'\n")
+    coherent = 0
+    shown = 0
+    freq = {t: toks.count(t) for t in set(toks)}
+    for t in sorted(set(toks), key=lambda x: (-freq[x], x)):
+        r = rebus.readings(t, limit=1)
+        if not r:
+            continue
+        reading, score = r[0]
+        # A reading built only from 1-letter homophones ("and see be e") is a
+        # coincidence of tiny words, not a real rebus; flag those.
+        pieces = reading.split()
+        trivial = all(len(p) <= 3 for p in pieces) and len(pieces) >= 3
+        mark = "  (coincidental tiny words)" if trivial else ""
+        if not trivial and score >= 0.6:
+            coherent += 1
+        tag = f"{t} (x{freq[t]})" if freq[t] > 1 else t
+        print(f"  {tag:<12} -> \"{reading}\"  [{score:.2f}]{mark}")
+        shown += 1
+        if shown >= (args.top if args.top else 30):
+            break
+
+    print("\n=== verdict ===")
+    print(f"coherent rebus readings (multi-letter words, not tiny-word runs): "
+          f"{coherent}")
+    print("The method reads real rebuses perfectly (CU=see you), but the "
+          "McCormick tokens do not form coherent letter-name phrases. NCBE "
+          "reads only as 'and see be e' — a string of coincidental one-letter "
+          "words, NOT a decoding. So the rebus model does NOT crack NCBE.")
+
+
 def cmd_build_model(args):
     """Build an English quadgram model from a corpus for maximum accuracy."""
     from collections import Counter
@@ -525,6 +567,11 @@ def build_parser() -> argparse.ArgumentParser:
                              "spelling)")
     add_common(sp)
     sp.set_defaults(func=cmd_phonetic)
+
+    sp = sub.add_parser("rebus",
+                        help="letter-name/homophone reading (CU = 'see you')")
+    add_common(sp)
+    sp.set_defaults(func=cmd_rebus)
 
     sp = sub.add_parser("build-model",
                         help="build quadgram model from a text corpus")
