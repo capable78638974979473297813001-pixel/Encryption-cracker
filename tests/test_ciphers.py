@@ -8,7 +8,7 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from codebreaker import encodings  # noqa: E402
 from codebreaker.classical import (affine, atbash, caesar, morse,  # noqa: E402
                                    substitution, transposition, vigenere, xor)
-from codebreaker.detect import auto_crack  # noqa: E402
+from codebreaker.detect import assess, auto_crack  # noqa: E402
 from codebreaker.hashes import crack_dictionary, identify  # noqa: E402
 
 PLAIN = ("the quick brown fox jumps over the lazy dog and then the dog "
@@ -129,6 +129,25 @@ def test_auto_crack_vigenere():
     ct = vigenere.encrypt(PLAIN, "LEMON")
     cands = auto_crack(ct, deep=False, top=5)
     assert any("quick brown fox" in c.plaintext for c in cands)
+
+
+def test_assess_reports_solved():
+    ct = caesar.encrypt(PLAIN, 4)
+    verdict = assess(ct)
+    assert verdict["verdict"] == "solved"
+
+
+def test_assess_reports_unsolved_on_gibberish():
+    # Random letters+digits with no underlying English plaintext: the tool
+    # must NOT claim a solution.  This guards the "never fake a break" promise.
+    import random
+    rng = random.Random(0)
+    junk = "".join(rng.choice("ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789")
+                   for _ in range(90))
+    verdict = assess(junk)
+    assert verdict["verdict"] == "unsolved"
+    assert verdict["confidence"] < 0.48
+    assert verdict["notes"]  # must explain what it sees instead of guessing
 
 
 if __name__ == "__main__":

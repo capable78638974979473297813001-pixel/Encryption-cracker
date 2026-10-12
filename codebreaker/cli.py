@@ -13,7 +13,7 @@ from . import analysis, encodings, hashes
 from .classical import (affine, atbash, caesar, morse, substitution,
                         transposition, vigenere, xor)
 from .core import Candidate
-from .detect import auto_crack, profile
+from .detect import assess, auto_crack, profile
 from .scoring import describe_scorer
 
 
@@ -52,10 +52,18 @@ def _print_candidates(cands: List[Candidate], verbose: bool = False) -> None:
 def cmd_auto(args):
     text = _read_input(args)
     print(f"scorer: {describe_scorer()}")
-    print(f"profile: {profile(text)}")
+    cands = auto_crack(text, deep=not args.fast, top=args.top)
+    verdict = assess(text, cands)
+
+    print(f"\n=== verdict: {verdict['verdict'].upper()} ===")
+    print(verdict["summary"])
+    if verdict["verdict"] != "solved" and verdict["notes"]:
+        print("\ndiagnostics:")
+        for n in verdict["notes"]:
+            print(f"  - {n}")
+
     print("\n=== best candidates ===")
-    _print_candidates(auto_crack(text, deep=not args.fast, top=args.top),
-                      args.verbose)
+    _print_candidates(cands, args.verbose)
 
 
 def cmd_analyze(args):

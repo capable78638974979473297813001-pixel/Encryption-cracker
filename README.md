@@ -105,7 +105,31 @@ most important thing in cryptography:
 
 If you hand `codebreaker` something it can't break, it will say so and tell you
 what it *is* (via `analyze`), rather than spinning forever or faking a result.
-That honesty is a feature.
+That honesty is a feature: `auto` prints an explicit **verdict** —
+`SOLVED`, `PARTIAL` (a lead, may be wrong), or `UNSOLVED` — with a confidence
+score and diagnostics, and the `UNSOLVED` threshold sits above the confidence
+that random noise can reach by chance, so gibberish is never dressed up as an
+answer.
+
+### A real example: the Ricky McCormick notes
+
+The two coded notes found on Ricky McCormick (the "Missouri man," found dead in
+St. Charles County in 1999) are a famous test of this. The FBI's Cryptanalysis
+and Racketeering Records Unit and the American Cryptogram Association have both
+worked them and **neither has solved them**; the FBI published them in 2011 and
+they remain open. Leading expert opinion is that they may be idiosyncratic
+personal shorthand/abbreviations known only to McCormick — not a standard
+cipher with a recoverable key — and some researchers think they may not be
+meaningfully decipherable at all.
+
+So no program, this one or anyone's, can honestly "solve" them: there is no
+known method to apply and possibly no plaintext to recover. Run such a note
+through `auto` and it will correctly return `UNSOLVED` with diagnostics (digits
+mixed with letters → not a pure alphabetic cipher; index of coincidence;
+entropy), instead of inventing a message. Feed it the ciphertext yourself —
+the toolkit does not ship a transcription, because the published transcriptions
+are handwriting-based and disputed, and guessing one would be making something
+up.
 
 ## Scope & responsible use
 
