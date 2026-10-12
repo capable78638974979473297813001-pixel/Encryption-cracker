@@ -5,7 +5,7 @@ import sys
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from codebreaker import encodings  # noqa: E402
+from codebreaker import abbrev, encodings  # noqa: E402
 from codebreaker.classical import (affine, atbash, caesar, morse,  # noqa: E402
                                    substitution, transposition, vigenere, xor)
 from codebreaker.detect import assess, auto_crack  # noqa: E402
@@ -129,6 +129,23 @@ def test_auto_crack_vigenere():
     ct = vigenere.encrypt(PLAIN, "LEMON")
     cands = auto_crack(ct, deep=False, top=5)
     assert any("quick brown fox" in c.plaintext for c in cands)
+
+
+def test_abbrev_expands_vowel_dropped_words():
+    # Vowel-dropped common words should expand to the real word.
+    assert "WORLD" in abbrev.expand_token("WLD") or \
+           "WOULD" in abbrev.expand_token("WLD")
+    assert "PLEASE" in abbrev.expand_token("PLSE")
+
+
+def test_abbrev_analyze_is_honest():
+    # On genuinely abbreviated English the analyzer finds strong matches but
+    # never asserts a decoding; the report is evidence, not plaintext.
+    rep = abbrev.analyze("WLD PLSE NMRSE CLTRSE FRTSE HTLSE")
+    assert rep["strong_matches"] >= 4
+    assert "expansions" in rep and "strong_fraction" in rep
+    # Report contains no field that purports to be "the" decoded message.
+    assert "plaintext" not in rep and "solution" not in rep
 
 
 def test_assess_reports_solved():

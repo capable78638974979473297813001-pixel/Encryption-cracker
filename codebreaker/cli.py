@@ -9,7 +9,7 @@ import argparse
 import sys
 from typing import List, Optional
 
-from . import analysis, encodings, hashes
+from . import abbrev, analysis, encodings, hashes
 from .classical import (affine, atbash, caesar, morse, substitution,
                         transposition, vigenere, xor)
 from .core import Candidate
@@ -191,6 +191,56 @@ def cmd_hash(args):
         print("\nnot found with the given attack.")
 
 
+def cmd_abbrev(args):
+    text = _read_input(args)
+    rep = abbrev.analyze(text)
+    print(f"tokens: {rep['token_count']}  unique: {rep['unique_tokens']}")
+    print(f"strong matches (len>=3 token -> one common word): "
+          f"{rep['strong_matches']}/{rep['strong_eligible']} "
+          f"({rep['strong_fraction']:.0%})")
+    print("  (short tokens are excluded — they match too many words to count)")
+    print(f"word-initial chi-squared: {rep['word_initial_chi_squared']} "
+          f"(lower = closer to how English words begin)")
+
+    if rep["recurring"]:
+        print("\nrecurring tokens (the note's own vocabulary):")
+        for t, c in rep["recurring"][:15]:
+            print(f"  {t:<14} x{c}")
+
+    print("\nper-token candidate expansions (vowel-drop hypothesis):")
+    print("  * these are HYPOTHESES, not a decoding; '-' means no good match\n")
+    for e in rep["expansions"]:
+        if args.only_matched and not (e["direct"] or e["wordbreak"]):
+            continue
+        tag = f"{e['token']} (x{e['count']})" if e["count"] > 1 else e["token"]
+        if e["direct"]:
+            val = "  /  ".join(e["direct"])
+        elif e["wordbreak"]:
+            val = " + ".join(e["wordbreak"]) + "   [segmented]"
+        else:
+            val = "-"
+        print(f"  {tag:<18} -> {val}")
+
+    # Honest closing verdict.
+    top = rep["recurring"][0] if rep["recurring"] else None
+    top_strong = False
+    if top:
+        for e in rep["expansions"]:
+            if e["token"] == top[0]:
+                top_strong = e["strong"]
+                break
+    print("\n=== verdict ===")
+    print(f"{rep['strong_fraction']:.0%} of multi-letter tokens map cleanly to "
+          f"a single common English word — consistent with abbreviated / "
+          f"vowel-dropped English, NOT a math cipher.")
+    if top and not top_strong:
+        print(f"But the most frequent unit, {top[0]} (x{top[1]}), has no clean "
+              f"English reading, and many tokens have several candidates.")
+    print("This is EVIDENCE about how the note was written. It is NOT a "
+          "decoding: no full, verifiable plaintext is produced, and none "
+          "should be claimed.")
+
+
 def cmd_build_model(args):
     """Build an English quadgram model from a corpus for maximum accuracy."""
     from collections import Counter
@@ -296,6 +346,14 @@ def build_parser() -> argparse.ArgumentParser:
     sp.add_argument("--algo", help="force algorithm (md5/sha1/sha256/...)")
     sp.add_argument("-v", "--verbose", action="store_true")
     sp.set_defaults(func=cmd_hash)
+
+    sp = sub.add_parser("abbrev",
+                        help="abbreviation / vowel-drop analysis (abbreviated "
+                             "English, not a cipher)")
+    add_common(sp)
+    sp.add_argument("--only-matched", action="store_true",
+                    help="show only tokens that expand to common English")
+    sp.set_defaults(func=cmd_abbrev)
 
     sp = sub.add_parser("build-model",
                         help="build quadgram model from a text corpus")

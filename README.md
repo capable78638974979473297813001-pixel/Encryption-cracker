@@ -29,6 +29,7 @@ python -m codebreaker auto "Wklv lv d vhfuhw phvvdjh"
 | `xor` | Single-byte & repeating-key XOR | Hamming-distance key-size detection |
 | `transposition` | Rail fence & columnar | Exhaustive search over keys |
 | `atbash` / `morse` | Atbash, Morse code | Direct transforms |
+| `abbrev` | *Abbreviated / vowel-dropped English* (not a cipher) | Consonant-skeleton dictionary matching |
 | `decode` | Layered base64 / base32 / hex / binary / URL | Recursive peeling |
 | `analyze` | *Tells you what you're looking at* | IoC, entropy, frequency, Kasiski |
 | `hash` | Weak **unsalted** hashes (MD5, SHA-1/2/3, …) | Dictionary + rules, bounded brute force |
@@ -124,12 +125,32 @@ meaningfully decipherable at all.
 
 So no program, this one or anyone's, can honestly "solve" them: there is no
 known method to apply and possibly no plaintext to recover. Run such a note
-through `auto` and it will correctly return `UNSOLVED` with diagnostics (digits
-mixed with letters → not a pure alphabetic cipher; index of coincidence;
-entropy), instead of inventing a message. Feed it the ciphertext yourself —
-the toolkit does not ship a transcription, because the published transcriptions
-are handwriting-based and disputed, and guessing one would be making something
-up.
+through `auto` and it will correctly return `UNSOLVED` with diagnostics, instead
+of inventing a message.
+
+**The abbreviated-English hypothesis.** The leading theory is that McCormick,
+who was barely literate, wrote in his own abbreviated/phonetic English — vowels
+dropped, words shortened — rather than a cipher. The `abbrev` command tests
+exactly that, by matching each token's consonant skeleton against common
+English words:
+
+```bash
+python3 -m codebreaker abbrev --in examples/mccormick_dcode_transcription.txt
+```
+
+Run against one published (disputed) transcription, it finds real evidence for
+the theory: tokens like `WLD→WOULD/WILD`, `PLSE→PLEASE`, `NMRSE→NUMEROUS`,
+`CLTRSE→CULTURES`, `FRTSE→FRUITS`, `HTLSE→HOTELS` expand cleanly, and the
+pervasive `-SE` suffix behaves just like an English plural `-s` written
+phonetically. But it is **honest about the limits**: only ~31% of multi-letter
+tokens map cleanly, the single most common unit (`NCBE`, appearing 12×) has no
+clean reading, many tokens have several candidates, and the transcription
+itself is uncertain. So it reports *evidence about how the note was written* —
+**not a decoding, and it never claims one.**
+
+The repo ships one published transcription (`examples/`, from dCode, clearly
+labelled as disputed and non-authoritative) only so the analyzer can run on
+real data. Feed it your own transcription to compare.
 
 ## Scope & responsible use
 
