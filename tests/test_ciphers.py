@@ -148,6 +148,24 @@ def test_abbrev_analyze_is_honest():
     assert "plaintext" not in rep and "solution" not in rep
 
 
+def test_abbrev_best_reading_picks_one_word():
+    reading = abbrev.best_reading("WLD PLSE NMRSE")
+    assert len(reading) == 1
+    choices = [c["choice"] for c in reading[0]]
+    assert choices[0] in ("WORLD", "WOULD", "WILD")
+    assert choices[1] == "PLEASE"
+    assert choices[2] == "NUMEROUS"
+
+
+def test_abbrev_token_context():
+    text = "AAA WLD NCBE\nBBB WLD NCBE\nCCC NCBE"
+    ctx = abbrev.token_context(text, "NCBE")
+    assert ctx["count"] == 3
+    assert ctx["line_final"] == 3            # ends every line here
+    assert dict(ctx["preceded_by"]).get("WLD") == 2
+    assert ctx["vowel_insertion"] is None    # genuinely has no clean expansion
+
+
 def test_assess_reports_solved():
     ct = caesar.encrypt(PLAIN, 4)
     verdict = assess(ct)

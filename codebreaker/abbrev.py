@@ -133,6 +133,98 @@ def wordbreak(token: str, max_segments: int = 5) -> Optional[List[str]]:
     return result[1]
 
 
+def _line_tokens(text: str) -> List[List[str]]:
+    """Tokenize per line, keeping number groups (digits, '.', '/') as tokens."""
+    pat = re.compile(r"[A-Za-z]+|\d[\d./]*")
+    out = []
+    for line in text.splitlines():
+        if line.lstrip().startswith("#"):
+            continue
+        toks = [m.group(0).upper() for m in pat.finditer(line)]
+        if toks:
+            out.append(toks)
+    return out
+
+
+def choose_word(token: str) -> Tuple[Optional[str], List[str], str]:
+    """Pick the single most likely reading of one token.
+
+    Among the candidate words that share the token's consonant skeleton, the
+    maximum-likelihood single guess is simply the most frequent word.  Returns
+    ``(choice, alternatives, kind)`` where kind is 'strong' (clean single-word
+    match on a 3+ skeleton), 'weak' (short/ambiguous), 'segmented' (read as
+    several words), or 'none'.  This is a per-token BEST GUESS, not a fact.
+    """
+    cands = expand_token(token, limit=10)
+    sk_len = len(consonant_skeleton(token))
+    if cands:
+        kind = "strong" if sk_len >= 3 else "weak"
+        return cands[0], cands[1:5], kind
+    wb = wordbreak(token)
+    if wb:
+        return " ".join(wb), [], "segmented"
+    return None, [], "none"
+
+
+def best_reading(text: str) -> List[List[Dict]]:
+    """Produce one speculative reading of the note, choosing a word per token.
+
+    Returns a list of lines; each line is a list of per-token dicts with the
+    original token, the chosen word (or None), alternatives, and kind.  The
+    result is explicitly a hypothesis — stringing best-guess words together
+    does NOT yield a verified message, and several tokens stay ambiguous.
+    """
+    reading = []
+    for line in _line_tokens(text):
+        row = []
+        for tok in line:
+            if re.match(r"\d", tok):
+                row.append({"token": tok, "choice": tok, "alts": [],
+                            "kind": "number"})
+                continue
+            choice, alts, kind = choose_word(tok)
+            row.append({"token": tok, "choice": choice, "alts": alts,
+                        "kind": kind})
+        reading.append(row)
+    return reading
+
+
+def token_context(text: str, token: str) -> Dict:
+    """Structural probe for a recurring, un-expandable token (e.g. NCBE).
+
+    Instead of guessing letters, it reports WHERE the token sits: how often it
+    ends a line, what precedes and follows it, and its strongest collocations.
+    This surfaces structure (a refrain, a delimiter, a list marker) without
+    claiming meaning.
+    """
+    token = token.upper()
+    lines = _line_tokens(text)
+    total = line_final = 0
+    before = Counter()
+    after = Counter()
+    for line in lines:
+        for i, t in enumerate(line):
+            if t != token:
+                continue
+            total += 1
+            before[line[i - 1] if i > 0 else "<START>"] += 1
+            after[line[i + 1] if i + 1 < len(line) else "<END>"] += 1
+            if i == len(line) - 1:
+                line_final += 1
+    # Acronym reading: treat the letters as initials of separate words.
+    initials = [c for c in token if c.isalpha()]
+    return {
+        "token": token,
+        "count": total,
+        "line_final": line_final,
+        "line_final_fraction": line_final / total if total else 0.0,
+        "preceded_by": before.most_common(6),
+        "followed_by": after.most_common(6),
+        "vowel_insertion": expand_token(token) or None,
+        "as_initials": initials,
+    }
+
+
 def analyze(text: str) -> Dict:
     """Run the full abbreviation analysis and return a structured report."""
     tokens = tokenize(text)

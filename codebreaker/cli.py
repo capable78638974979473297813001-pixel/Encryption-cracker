@@ -191,8 +191,42 @@ def cmd_hash(args):
         print("\nnot found with the given attack.")
 
 
+def _kind_mark(kind):
+    return {"strong": " ", "weak": "?", "segmented": "~", "none": "!",
+            "number": "#"}.get(kind, " ")
+
+
 def cmd_abbrev(args):
     text = _read_input(args)
+
+    if args.context:
+        ctx = abbrev.token_context(text, args.context)
+        print(f"structural probe: {ctx['token']}  (x{ctx['count']})")
+        print(f"ends a line: {ctx['line_final']}/{ctx['count']} "
+              f"({ctx['line_final_fraction']:.0%})")
+        print(f"preceded by: {ctx['preceded_by']}")
+        print(f"followed by: {ctx['followed_by']}")
+        print(f"vowel-insertion reading: {ctx['vowel_insertion'] or 'none'}")
+        print(f"as initials: {'.'.join(ctx['as_initials'])}.")
+        print("\nThis describes WHERE the token sits, not what it means. "
+              "No meaning is claimed.")
+        return
+
+    if args.read:
+        print("SPECULATIVE reconstruction — one chosen word per token.")
+        print("Marks:  ? ambiguous (alternatives exist)   ~ segmented guess   "
+              "! no match   # number\n")
+        for row in abbrev.best_reading(text):
+            parts = []
+            for c in row:
+                word = c["choice"] if c["choice"] else c["token"]
+                parts.append(f"{word}{_kind_mark(c['kind'])}".strip())
+            print("  " + " ".join(parts))
+        print("\nThis is a hypothesis, not a decoding. Many tokens are "
+              "ambiguous and the transcription itself is disputed; do not "
+              "read this as the message.")
+        return
+
     rep = abbrev.analyze(text)
     print(f"tokens: {rep['token_count']}  unique: {rep['unique_tokens']}")
     print(f"strong matches (len>=3 token -> one common word): "
@@ -353,6 +387,10 @@ def build_parser() -> argparse.ArgumentParser:
     add_common(sp)
     sp.add_argument("--only-matched", action="store_true",
                     help="show only tokens that expand to common English")
+    sp.add_argument("--read", action="store_true",
+                    help="print a speculative best-guess reconstruction")
+    sp.add_argument("--context", metavar="TOKEN",
+                    help="structural probe of one recurring token (e.g. NCBE)")
     sp.set_defaults(func=cmd_abbrev)
 
     sp = sub.add_parser("build-model",
