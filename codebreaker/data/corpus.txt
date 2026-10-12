@@ -1,0 +1,202 @@
+The art of breaking secret writing is as old as the art of making it. For as
+long as people have wanted to keep a message from prying eyes, other people
+have wanted to read it, and the quiet contest between the two has shaped the
+course of history more often than most of us ever realize. A cipher is only
+as strong as the cleverness of the person who tries to break it, and time and
+again a system that seemed perfectly secure was laid open by a careful mind
+and a sheet of paper.
+
+Consider the simple substitution cipher, in which every letter of the alphabet
+is replaced by another letter according to a fixed rule. At first glance the
+number of possible keys is enormous, far larger than anyone could ever test by
+hand, and so for centuries such ciphers were trusted to guard the most
+sensitive correspondence of kings and generals. Yet the very structure of
+language betrays the secret. In ordinary English the letter e appears far more
+often than any other, followed by t, a, o, i, n, and the rest in a familiar
+order. The spaces between words, the doubled letters, the short common words
+such as the and and and of and to, all leave their fingerprints on the
+ciphertext for a patient analyst to find.
+
+Frequency analysis, the counting of how often each symbol appears, was
+described by scholars more than a thousand years ago, and it remains one of
+the most powerful tools we have. By comparing the distribution of letters in
+the encrypted text with the known distribution of letters in the language, we
+can make educated guesses about which cipher letter stands for which plain
+letter. One good guess leads to another, a fragment of a word suggests the
+letters around it, and slowly the hidden message emerges from the noise like a
+photograph developing in a tray.
+
+The Vigenere cipher was once called the indecipherable cipher, because it uses
+not one but many shifted alphabets, chosen in turn according to a repeating
+keyword. For a long time it resisted every attempt to break it, and its
+reputation grew until it seemed almost magical. But the repetition of the key
+is its undoing. If the same common word in the message happens to line up with
+the same part of the key, it produces the same string of letters in the
+ciphertext, and the distance between such repetitions must be a multiple of
+the key length. By measuring these distances, an analyst can work out how long
+the key is, and once the length is known the whole problem falls apart into
+several simple shift ciphers, each of which yields at once to frequency
+counting.
+
+Transposition ciphers take a different path. Instead of replacing the letters,
+they shuffle the order in which the letters are written, scrambling a sensible
+sentence into a meaningless jumble while keeping every original letter intact.
+Because no letter is changed, the frequency of each letter in the ciphertext
+matches the frequency in plain text exactly, and this fact alone tells the
+analyst that a transposition, rather than a substitution, is at work. The task
+then becomes one of finding the pattern of the shuffle, trying out likely grid
+widths and reading the columns in a new order until the words snap back into
+place.
+
+In the modern world the ciphers that protect our banking, our messages, and
+our private lives are built on mathematics far deeper than these classical
+schemes. They rest not on secrecy of method but on problems that are easy to
+state and believed to be extremely hard to solve, such as finding the prime
+factors of a very large number or computing a discrete logarithm. The strength
+of such a system does not come from hiding how it works, for the method is
+published openly for all to study and attack. It comes instead from the sheer
+scale of the computation that an attacker would have to perform, a scale so
+vast that all the computers on earth working together for longer than the age
+of the universe would make no meaningful progress at all.
+
+This is the honest truth that every student of the subject must learn. A well
+designed modern cipher with a properly chosen key cannot be broken by raw
+force, and anyone who claims otherwise is selling something or does not
+understand the numbers involved. When such systems fail in practice, and they
+do fail, the failure almost never lies in the mathematics. It lies in the
+human details around the mathematics: a key that was chosen badly, a password
+that was short and guessable, a secret that was stored without protection, a
+piece of software with a careless mistake, or a person who was persuaded to
+hand over the key with a convincing lie.
+
+And so the real work of breaking codes today is rarely a matter of brute force
+against the algorithm itself. It is the patient search for the weak link, the
+reused password, the forgotten backup, the mistaken assumption. The best
+analyst is not the one with the fastest machine but the one who thinks most
+clearly about where the mistakes are likely to hide. Curiosity, patience, and a
+refusal to accept that a thing is impossible merely because it is difficult:
+these have always been the true tools of the trade, and they always will be.
+
+Learning to break the classical ciphers teaches the habits of mind that matter.
+You learn to look for pattern where others see only noise. You learn to form a
+hypothesis, test it against the evidence, and throw it away without regret when
+it fails. You learn that a problem which looks hopeless from one angle often
+yields easily from another, and that the first step is simply to measure what
+you have and describe it plainly. These lessons carry far beyond secret writing,
+into every field where a person must reason carefully from incomplete
+information toward a hidden truth.
+
+A message hidden in a picture, a word concealed inside the first letters of
+each line, a number written in a strange base, a string of dots and dashes
+tapped out along a wire: all of these are invitations to the curious. Each one
+asks a simple question. Can you figure out what it means. And the answer, with
+enough patience and the right tools, is very often yes. Not every lock can be
+picked, but far more can be opened than the nervous owner would ever like to
+believe, and the only way to know which is which is to sit down, sharpen your
+pencil, and begin.
+
+The morning light came slowly over the hills, spreading across the fields of
+wheat and barley that stretched toward the distant line of trees. A farmer
+walked along the narrow path beside the river, carrying a basket of bread and
+cheese for the workers who had risen before dawn to begin the harvest. The air
+was cool and clean, and birds called to one another from the hedges, their
+songs rising and falling in the quiet of the early day. Far away a church bell
+rang the hour, and the sound travelled across the valley like a message passed
+from hand to hand.
+
+Science begins with a simple question and a willingness to be wrong. A child
+who asks why the sky is blue, why the moon changes shape, or why a heavy stone
+and a light feather fall at different speeds through the air, has already taken
+the first step along the same road that led to every great discovery. The
+scientist does not claim to know the answer in advance. Instead she forms a
+careful guess, designs an experiment that could prove the guess false, and then
+watches nature closely to see what truly happens. If the evidence disagrees
+with the guess, the guess must go, no matter how beautiful or how dearly held.
+
+The history of the world is in large part the history of communication. For
+most of human existence a message could travel no faster than a horse could
+run or a ship could sail, and so news of a great battle or the death of a king
+might take weeks or months to reach the far corners of a kingdom. The invention
+of writing allowed thoughts to be stored and carried across distance and time.
+The printing press let a single idea reach thousands of readers at once. The
+telegraph, the telephone, and at last the computer network collapsed the
+distance between people until a word typed in one city could appear in another
+on the far side of the planet in the blink of an eye.
+
+In a busy city the streets fill early with people hurrying to their work. Cars
+and buses crowd the roads, their engines humming, while pigeons gather on the
+square to peck at crumbs dropped by the passing crowd. A woman sells flowers
+from a bright stall on the corner, and the smell of fresh coffee drifts out
+from a small shop where a tired baker arranges rows of warm bread behind the
+glass. Children in neat uniforms walk together toward the school gate, laughing
+and calling, their voices bright against the low rumble of the traffic.
+
+Mathematics is the language in which the laws of nature appear to be written.
+A falling apple, a planet in its orbit, the spread of heat through a metal bar,
+the flow of water in a pipe, the growth of a population of rabbits in a field,
+all of these follow rules that can be captured in a few lines of careful
+symbols. What seems at first like a dry game of numbers turns out to describe
+the deepest workings of the physical world, and a formula discovered by a quiet
+thinker at a desk can predict the motion of the stars or the behaviour of a
+machine that will not be built for a hundred years.
+
+The ocean holds more mystery than any other place on earth. Beneath the shining
+surface, where sunlight fades to a deep and endless blue, strange creatures
+drift through the cold dark water, many of them never seen by human eyes. Great
+currents move around the globe like slow rivers within the sea, carrying warmth
+from the equator toward the poles and shaping the weather of every land they
+pass. Storms are born far out over the open water, gather their strength from
+the heat below, and sweep toward the shore where people watch the sky and
+wonder whether to stay or flee.
+
+Every good story begins with a person who wants something and finds a reason
+they cannot easily have it. The want may be small, a letter answered or a door
+opened, or it may be as large as the saving of a nation, but without it there
+is no story at all, only a list of events. The reader follows the character
+through hope and fear, success and defeat, and in the end feels that they too
+have lived a little of that life. This is the oldest kind of magic we know, the
+turning of marks on a page into a world inside the mind of a stranger.
+
+Good writing is clear before it is clever. The first duty of a sentence is to
+be understood, and only after that may it try to please. A long word is not
+better than a short one, and a complicated phrase is not wiser than a plain
+one. The writer who respects the reader chooses the simplest words that carry
+the meaning, arranges them in an order that flows, and cuts away everything
+that does not earn its place. What remains is light and strong and easy to
+follow, like a path cleared through a tangled wood.
+
+The old house stood at the end of the lane, its windows dark and its garden
+grown wild with roses and tall grass. For many years no one had lived there,
+and the children of the village told stories about the strange lights that
+were sometimes seen moving behind the glass on winter nights. An old man who
+had lived nearby all his life said that the house had once belonged to a sea
+captain, a quiet person who had sailed to distant lands and returned with
+chests full of books and maps and curious objects whose purpose no one could
+quite explain.
+
+Learning any difficult skill follows the same pattern. At the start everything
+feels clumsy and slow, and the gap between what you can do and what you wish to
+do seems impossibly wide. With steady practice the movements become smoother,
+the mistakes less frequent, and one day you find that a task which once took
+all your concentration now happens almost without thought. The secret is not
+talent but patience, the willingness to be bad at something long enough to
+become good, and to return to the work again and again even when progress feels
+invisible from one day to the next.
+
+Deep in the forest the trees grew so close together that only thin blades of
+sunlight reached the soft brown floor. A narrow stream wound between the roots,
+clear and cold, and small fish darted among the smooth stones on its bed. Here
+and there a fallen log lay covered in green moss, slowly returning to the earth
+that had fed it for a hundred years. The silence was not empty but full, made
+of the whisper of leaves, the distant knocking of a woodpecker, and the soft
+sound of water moving always toward the sea.
+
+A computer does nothing a person could not do by hand, given enough time and
+paper. It simply does it very fast and without growing tired or bored. At its
+heart a machine understands only two states, on and off, one and zero, and from
+this simple pair it builds numbers, letters, pictures, sound, and every program
+that has ever been written. The art of the programmer is to break a large and
+cloudy problem into small and perfectly clear steps, each so simple that even a
+thing which cannot think may carry it out, and to arrange those steps so that
+together they achieve something that looks, from the outside, almost like
+thought itself.

@@ -1,0 +1,31 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "codebreaker"
+version = "1.0.0"
+description = "A practical classical-cryptanalysis toolkit: detect and break classical ciphers, encodings, and weak hashes."
+readme = "README.md"
+requires-python = ">=3.8"
+license = { text = "MIT" }
+authors = [{ name = "Scott Holdan" }]
+keywords = ["cryptanalysis", "cipher", "caesar", "vigenere", "substitution",
+            "xor", "ctf", "frequency-analysis", "codebreaking"]
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "Topic :: Security :: Cryptography",
+    "Intended Audience :: Education",
+]
+
+# Zero runtime dependencies — pure standard library by design.
+dependencies = []
+
+[project.scripts]
+codebreaker = "codebreaker.cli:main"
+
+[tool.setuptools]
+packages = ["codebreaker", "codebreaker.classical", "codebreaker.data"]
+
+[tool.setuptools.package-data]
+"codebreaker.data" = ["*.txt"]
