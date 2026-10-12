@@ -5,7 +5,8 @@ import sys
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from codebreaker import abbrev, addresses, encodings, units  # noqa: E402
+from codebreaker import (abbrev, addresses, encodings,  # noqa: E402
+                        phonetic, units)
 from codebreaker.classical import (affine, atbash, caesar, morse,  # noqa: E402
                                    substitution, transposition, vigenere, xor)
 from codebreaker.detect import assess, auto_crack  # noqa: E402
@@ -193,6 +194,23 @@ def test_units_affix_habits():
     aff = units.affixes("CATSE DOGSE BIRDSE CARSE")
     assert aff["end_SE"] == 4 and aff["end_SE_fraction"] == 1.0
     assert units.stems("CATSE DOGSE", "SE") == ["CAT", "DOG"]
+
+
+def test_phonetic_matches_by_sound():
+    # 'NMBRS' (vowel-dropped, phonetic) should sound like NUMBERS.
+    assert "NUMBERS" in phonetic.sound_matches("NMBRS")
+    # sound folding: C/K merge, so 'KLR' reaches COLOR-class words.
+    key_c = phonetic.sound_key("CLR")
+    key_k = phonetic.sound_key("KLR")
+    assert key_c == key_k            # C and K fold to the same sound
+
+
+def test_cross_validate_reports_two_halves():
+    text = ("# --- Page 1 ---\nCATSE DOGSE NCBE\n"
+            "# --- Page 2 ---\nBIRDSE CARSE NCBE")
+    cv = units.cross_validate(text)
+    assert len(cv["halves"]) == 2
+    assert cv["halves"][0]["NCBE"] == 1 and cv["halves"][1]["NCBE"] == 1
 
 
 def test_assess_reports_solved():

@@ -79,6 +79,47 @@ def stems(text: str, suffix: str = "SE") -> List[str]:
             if t.endswith(suffix) and len(t) > len(suffix)]
 
 
+def cross_validate(text: str) -> Dict:
+    """Split the note into halves and check that key habits hold in BOTH.
+
+    Splits on page markers (``# --- Page N ---``) if present, else at the
+    midpoint.  A habit that appears independently in two separately-written
+    halves is a real property of the writer, not an artifact of one block or
+    one transcription.
+    """
+    marker = re.compile(r"#.*page\s*\d", re.I)
+    if any(marker.search(l) for l in text.splitlines()):
+        chunks, cur = [], []
+        for line in text.splitlines():
+            if marker.search(line):
+                if any(c.strip() and not c.lstrip().startswith("#") for c in cur):
+                    chunks.append("\n".join(cur))
+                cur = []
+            else:
+                cur.append(line)
+        if any(c.strip() and not c.lstrip().startswith("#") for c in cur):
+            chunks.append("\n".join(cur))
+        halves = chunks[-2:] if len(chunks) >= 2 else chunks
+    else:
+        toks = _tokens(text)
+        mid = len(toks) // 2
+        halves = [" ".join(toks[:mid]), " ".join(toks[mid:])]
+
+    out = []
+    for h in halves:
+        aff = affixes(h)
+        ht = _tokens(h)
+        out.append({
+            "tokens": aff["tokens"],
+            "end_E_fraction": aff["end_E_fraction"],
+            "end_SE_fraction": aff["end_SE_fraction"],
+            "NCBE": sum(1 for t in ht if t == "NCBE"),
+            "has_CB": sum(1 for t in ht if "CB" in t),
+            "has_WLD": sum(1 for t in ht if "WLD" in t),
+        })
+    return {"halves": out}
+
+
 def analyze(text: str) -> Dict:
     subs = repeated_substrings(text)
     aff = affixes(text)

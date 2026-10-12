@@ -9,7 +9,7 @@ import argparse
 import sys
 from typing import List, Optional
 
-from . import abbrev, addresses, analysis, encodings, hashes, units
+from . import abbrev, addresses, analysis, encodings, hashes, phonetic, units
 from .classical import (affine, atbash, caesar, morse, substitution,
                         transposition, vigenere, xor)
 from .core import Candidate
@@ -355,6 +355,16 @@ def cmd_units(args):
     for s, c, sp in rep["cores"]:
         print(f"  {s:<6} count={c:<3} spread={sp}")
 
+    cv = units.cross_validate(text)
+    if len(cv["halves"]) == 2:
+        print("\n=== cross-validation (two halves, independently) ===")
+        for i, h in enumerate(cv["halves"], 1):
+            print(f"  half {i}: tokens={h['tokens']:<3} endE={h['end_E_fraction']:.0%} "
+                  f"endSE={h['end_SE_fraction']:.0%} NCBE={h['NCBE']} "
+                  f"CB-tokens={h['has_CB']} WLD-tokens={h['has_WLD']}")
+        print("  -> habits present in BOTH halves are real writer traits, not "
+              "a fluke of one block.")
+
     print("\n=== observed writing rule (hypothesis) ===")
     if aff["end_E_fraction"] > 0.5:
         print(f"- a terminal 'E' is appended to {aff['end_E_fraction']:.0%} of "
@@ -364,6 +374,21 @@ def cmd_units(args):
           "CLTR->cultures, FLR->floors, NMR->numer-")
     print("- this characterises HOW the note was written; it is not a decoding "
           "and the recurring refrain is still unexplained.")
+
+
+def cmd_phonetic(args):
+    text = _read_input(args)
+    rep = phonetic.analyze(text)
+    print("sound-based ('read it aloud') matching")
+    print(f"tokens with a sound-alike candidate: {rep['matched']}/"
+          f"{rep['eligible']} ({rep['coverage']:.0%})")
+    print("  (looser than letter matching by design — judge the specific "
+          "candidates, not the %)\n")
+    for e in rep["per_token"][:args.top if args.top else 30]:
+        tag = f"{e['token']} (x{e['count']})" if e["count"] > 1 else e["token"]
+        print(f"  {tag:<16} ~sounds like~ {', '.join(e['sounds'])}")
+    print("\nHypotheses, not a decoding: several words share each sound, and "
+          "no verifiable message results.")
 
 
 def cmd_build_model(args):
@@ -494,6 +519,12 @@ def build_parser() -> argparse.ArgumentParser:
                         help="mine recurring building blocks and affix habits")
     add_common(sp)
     sp.set_defaults(func=cmd_units)
+
+    sp = sub.add_parser("phonetic",
+                        help="sound-based matching (for phonetic/semi-literate "
+                             "spelling)")
+    add_common(sp)
+    sp.set_defaults(func=cmd_phonetic)
 
     sp = sub.add_parser("build-model",
                         help="build quadgram model from a text corpus")
